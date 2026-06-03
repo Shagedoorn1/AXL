@@ -33,14 +33,17 @@ def update_E(Ey, Hx, Hz, Ce, idx, idz, Nz, Nx):
            Ey_j[i] += Ce_j[i] * curl_h
 
 @njit(cache=True, fastmath=True, parallel=True)
-def accumulate_intensity(intensity, Ey, Nx, Nz):
+def accumulate_intensity(intensity,dose, Ey, Nx, Nz, dt):
     
     for j in prange(Nz):
         Ey_j = Ey[j]
         I_j = intensity[j]
+        D_j = dose[j]
         for i in range(Nx):
             e = Ey_j[i]
             I_j[i] += e * e
+            D_j[i] += e * e * dt
+            
             
 @njit(cache=True, fastmath=True)
 def inject_source(Ey, src_profile, src_j, source_value, Nx):

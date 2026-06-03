@@ -1,42 +1,68 @@
-from .spot import *
 import numpy as np
 
-def find_waist(x, z, field, z_min=50.0, z_max=700.0):
+def _clip_region(x, I, x_min=None, x_max=None):
+    mask = np.ones_like(x, dtype=bool)
+    
+    if x_min is not None:
+        mask &= (x >= x_min)
+        
+    if x_max is not None:
+        mask  &= (x <= x_max)
+        
+    return x[mask], I[mask]
+
+def analysis_window(x, center, width):
+    return center - width / 2, center + width / 2
+
+def centroid(x, I, x_min=None, x_max=None):
     """
-    Search from the deepest z upward to find the first (tightest) waist.
-    This avoids getting confused by the broad converging beam above the focus.
+    Intensity-weighted centroid.
+
+    Returns
+    -------
+    float
     """
-    x = np.asarray(x)
-    w0_local = np.full(len(z), np.nan)
+    x, I = _clip_region(x=x, I=I, x_min=x_min, x_max=x_max)
+    I_sum = np.sum(I)
     
-    for j, zi in enumerate(z):
-        if not (z_min < zi < z_max):
-            continue
-        w0, _, _ = spot_analysis(x, np.abs(field[j, :])**2)
-        if not np.isnan(w0):
-            w0_local[j] = w0
+    if (I_sum) <= 0:
+        return np.nan
+    return np.sum(x * I) / I_sum
+
+def rms_width(x, I, x_min=None, x_max=None):
+    """
+    Intensity-weighted centroid.
+
+    Returns
+    -------
+    float
+    """
+    x, I = _clip_region(x=x, I=I, x_min=x_min, x_max=x_max)
+    x0 = centroid(x, I)
     
-    valid = np.isfinite(w0_local)
-    if not np.any(valid):
-        return None
+    I_sum = np.sum(I)
     
-    # Search from bottom (deepest z) upward
-    valid_idx = np.where(valid)[0]
-    # Start from the deepest valid point, walk up to find minimum
-    deepest = valid_idx[-1]
-    shallowest = valid_idx[0]
+    if I_sum <= 0:
+        return np.nan
     
-    # Find minimum in the bottom half of the valid range (near substrate bottom)
-    bottom_half = valid_idx[valid_idx >= np.median(valid_idx)]
-    if len(bottom_half) == 0:
-        bottom_half = valid_idx
+    variance = np.sum(I * (x - x0)**2) / I_sum
+    return 2 * np.sqrt(variance)
+
+def fwhm(x, I, x_min=None, x_max=None):
+    """
+    Full width at half mean
+
+    Returns
+    -------
+    FWHM : float
+    """
+    x, I = _clip_region(x=x, I=I, x_min=x_min, x_max=x_max)
+    if np.max(I) <= 0:
+        return np.nan
     
-    local_min = np.argmin(w0_local[bottom_half])
-    waist_idx = bottom_half[local_min]
+    half = 0.5 * np.max(I)
     
-    return {
-        'z_waist': z[waist_idx],
-        'idx_waist': waist_idx,
-        'w0_waist': w0_local[waist_idx],
-        'w0_all': w0_local,
-    }
+    above = np.where(I >= half)[0]
+    if len(above) < 2:
+        return np.nan
+    return x[above[-1]] - x[above[0]]

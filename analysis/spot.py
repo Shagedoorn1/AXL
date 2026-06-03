@@ -1,47 +1,47 @@
 import numpy as np
 
-def spot_analysis(x, I, threshold=0.5):
-    """
-    Analyze a single intensity profile I(x).
-    Returns (w0, x_c, fwhm).
-    """
-    x = np.asarray(x)
-    I = np.asarray(I)
+from .waist import centroid
+from .waist import rms_width
+from .waist import fwhm
+
+def waist_vs_z(x, z, I, method="rms", x_min=None, x_max=None):
+    w = np.zeros(len(z))
     
-    # GUARD: ensure real, non-negative intensity
-    if np.iscomplexobj(I):
-        I = np.abs(I)**2
+    metric = {
+        "rms": rms_width,
+        "fwhm": fwhm
+    }[method]
     
-    I = np.real(I)
-    if np.max(I) <= 0:
-        return np.nan, np.nan, np.nan
+    for j in range(len(z)):
+        w[j] = metric(x=x, I=I[j], x_min=x_min, x_max=x_max)
+        
+    return z, w
 
-    # Find peak nearest x=0
-    center_idx = np.argmin(np.abs(x))
-    peak_idx = center_idx
-    while peak_idx > 0 and I[peak_idx-1] > I[peak_idx]:
-        peak_idx -= 1
-    while peak_idx < len(I)-1 and I[peak_idx+1] > I[peak_idx]:
-        peak_idx += 1
+def centroid_vs_z(x, z, I, x_min=None, x_max=None):
+    xc = np.zeros(len(z))
+    
+    for j in range(len(z)):
+        xc[j] = centroid(x=x, I=I[j], x_min=x_min, x_max=x_max)
+    
+    return z, xc
 
-    I_peak = I[peak_idx]
-    halfmax = threshold * I_peak
+def focus_position(x, z, I, method="rms", x_min=None, x_max=None):
+    zvals, w = waist_vs_z(x=x, z=z, I=I, method=method, x_min=x_min, x_max=x_max)
+    
+    idx = np.nanargmin(w)
+    
+    return zvals[idx], w[idx]
 
-    left = peak_idx
-    while left > 0 and I[left] > halfmax:
-        left -= 1
-    right = peak_idx
-    while right < len(I)-1 and I[right] > halfmax:
-        right += 1
+def focus_metrics(
+    x,
+    z,
+    intensity,
+    x_min=None,
+    x_max=None,
+):
+    focus_z, waist = focus_position(x, z, intensity, method="rms", x_min=x_min, x_max=x_max)
 
-    region = slice(left, right+1)
-    xw, Iw = x[region], I[region]
-    if len(xw) < 3:
-        return np.nan, np.nan, np.nan
-
-    tot = np.trapezoid(Iw, xw)
-    x_c = np.trapezoid(xw * Iw, xw) / tot
-    var = np.trapezoid((xw - x_c)**2 * Iw, xw) / tot
-    w0 = 2.0 * np.sqrt(var)
-    fwhm = x[right] - x[left]
-    return w0, x_c, fwhm
+    return {
+        "focus_z": focus_z,
+        "waist": waist,
+    }

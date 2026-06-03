@@ -108,6 +108,7 @@ class FDTD:
 
         self.Ey_prev = np.zeros_like(self.Ey)
         self.intensity = np.zeros_like(self.Ey)
+        self.dose = np.zeros_like(self.Ey)
         self.n_accum = 0
         
         self.recorder = None
@@ -127,7 +128,7 @@ class FDTD:
 
         # intensity
         if accumulate and step >= self.burn_in_steps:
-            accumulate_intensity(self.intensity, self.Ey, self.Nx, self.Nz)
+            accumulate_intensity(self.intensity, self.dose, self.Ey, self.Nx, self.Nz, self.dt)
             self.n_accum += 1
         
         if self.recorder is not None:
@@ -172,3 +173,6 @@ class FDTD:
     # ============================================================
     def get_intensity(self):
         return self.intensity / max(self.n_accum, 1)
+    
+    def get_dose(self):
+        return self.dose
