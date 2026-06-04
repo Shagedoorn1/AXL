@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from .waist import centroid
 from .waist import rms_width
@@ -29,6 +30,9 @@ def focus_position(x, z, I, method="rms", x_min=None, x_max=None):
     zvals, w = waist_vs_z(x=x, z=z, I=I, method=method, x_min=x_min, x_max=x_max)
     
     idx = np.nanargmin(w)
+    
+    if idx == 0 or idx == len(w) - 1:
+        warnings.warn(f"Detected focus occurs at simulation boundary: {z[idx]}. Real focus might be outside simulation box")
     
     return zvals[idx], w[idx]
 

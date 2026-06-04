@@ -1,6 +1,7 @@
 from .kernels import update_H, update_E, inject_source, accumulate_intensity
 from .boundaries import get_boundary
 from .sources import get_source
+from plotting import Grid
 from constants import c0, eps0, mu0
 import numpy as np
 
@@ -42,18 +43,11 @@ class FDTD:
         # ----------------------------
         # grid
         # ----------------------------
-        self.x = np.asarray(x)
-        self.z = np.asarray(z)
+        self.grid = Grid(x, z)
 
-        self.dx = self.x[1] - self.x[0]
-        self.dz = self.z[1] - self.z[0]
-
-        self.idx = 1.0 / self.dx
-        self.idz = 1.0 / self.dz
-
-        self.Nx = len(x)
-        self.Nz = len(z)
-
+        self.idx = 1.0 / self.grid.dx
+        self.idz = 1.0 / self.grid.dz
+        
         # ----------------------------
         # material
         # ----------------------------
@@ -63,7 +57,7 @@ class FDTD:
         # ----------------------------
         # time step
         # ----------------------------
-        self.dt = 0.99 / (c0 * np.sqrt(1/self.dx**2 + 1/self.dz**2))
+        self.dt = 0.99 / (c0 * np.sqrt(1/self.grid.dx**2 + 1/self.grid.dz**2))
         self.period = 2 * np.pi / self.omega
         self.steps_per_period = max(1, int(self.period / self.dt))
         self.burn_in_steps = 20 * self.steps_per_period
@@ -71,17 +65,17 @@ class FDTD:
         # ----------------------------
         # fields
         # ----------------------------
-        self.Ey = np.zeros((self.Nz, self.Nx))
-        self.Hx = np.zeros((self.Nz, self.Nx))
-        self.Hz = np.zeros((self.Nz, self.Nx))
+        self.Ey = np.zeros((self.grid.Nz, self.grid.Nx))
+        self.Hx = np.zeros((self.grid.Nz, self.grid.Nx))
+        self.Hz = np.zeros((self.grid.Nz, self.grid.Nx))
 
         self.Ey_prev = np.zeros_like(self.Ey)
 
         # ----------------------------
         # coefficients
         # ----------------------------
-        self.Chx = self.dt / (mu0 * self.dz)
-        self.Chz = self.dt / (mu0 * self.dx)
+        self.Chx = self.dt / (mu0 * self.grid.dz)
+        self.Chz = self.dt / (mu0 * self.grid.dx)
         self.Ce = self.dt / self.eps
 
         # ----------------------------
@@ -91,8 +85,8 @@ class FDTD:
         self.boundary = get_boundary(
             boundary_type,
             dt=self.dt,
-            dx=self.dx,
-            dz=self.dz,
+            dx=self.grid.dx,
+            dz=self.grid.dz,
         )
 
         # ----------------------------
@@ -118,17 +112,17 @@ class FDTD:
     # ============================================================
     def _step(self, step, accumulate):
 
-        update_H(self.Ey, self.Hx, self.Hz, self.Chx, self.Chz, self.Nz, self.Nx)
-        update_E(self.Ey, self.Hx, self.Hz, self.Ce, self.idx, self.idz, self.Nz, self.Nx)
+        update_H(self.Ey, self.Hx, self.Hz, self.Chx, self.Chz, self.grid.Nz, self.grid.Nx)
+        update_E(self.Ey, self.Hx, self.Hz, self.Ce, self.idx, self.idz, self.grid.Nz, self.grid.Nx)
 
         if self.source is not None:
             self.source.apply(self.Ey, step, self.dt)
 
-        self.boundary.apply(self.Ey, self.Ey_prev, self.Nz, self.Nx)
+        self.boundary.apply(self.Ey, self.Ey_prev, self.grid.Nz, self.grid.Nx)
 
         # intensity
         if accumulate and step >= self.burn_in_steps:
-            accumulate_intensity(self.intensity, self.dose, self.Ey, self.Nx, self.Nz, self.dt)
+            accumulate_intensity(self.intensity, self.dose, self.Ey, self.grid.Nx, self.grid.Nz, self.dt)
             self.n_accum += 1
         
         if self.recorder is not None:
@@ -166,7 +160,7 @@ class FDTD:
             
         # probe
         if self.probe_j is not None:
-            self.probe_history.append(self.Ey[self.probe_j, self.Nx // 2])
+            self.probe_history.append(self.Ey[self.probe_j, self.grid.Nx // 2])
         if self.recorder is not None:
             self.recorder.finalize()
 

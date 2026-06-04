@@ -25,7 +25,7 @@ def paint_profile(n_map, z, bottom, profile, n):
     """
     Z = z[:, None]
     
-    mask = (Z >= bottom) & (Z <= profile[None, :])
+    mask = (Z <= 0) & (Z >= -profile[None, :])
     
     n_map[mask] = n
     return n_map

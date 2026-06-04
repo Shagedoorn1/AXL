@@ -62,7 +62,29 @@ def fwhm(x, I, x_min=None, x_max=None):
     
     half = 0.5 * np.max(I)
     
-    above = np.where(I >= half)[0]
-    if len(above) < 2:
+    peak = np.argmax(I)
+    
+    left = np.where(I[:peak] < half)[0]
+    
+    if len(left) == 0:
         return np.nan
-    return x[above[-1]] - x[above[0]]
+    
+    i1 = left[-1]
+    i2 = i1 + 1
+    
+    x_left = np.interp(half, [I[i1], I[i2]], [x[i1], x[i2]])
+    
+    right = np.where(I[peak:] < half)[0]
+    if len(right) == 0:
+        return np.nan
+
+    i2 = peak + right[0]
+    i1 = i2 - 1
+
+    x_right = np.interp(
+        half,
+        [I[i2], I[i1]],
+        [x[i2], x[i1]]
+    )
+
+    return x_right - x_left

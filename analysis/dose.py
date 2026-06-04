@@ -8,15 +8,13 @@ def cured_area(mask, dx, dz):
 
 def cured_profile(x, z, dose, D_c):
     mask = cured_mask(dose, D_c)
-    profile = np.zeros(len(x))
+    profile = np.full(len(x), np.nan)
     
     for i in range(len(x)):
         rows = np.where(mask[:, i])[0]
         
         if len(rows):
             profile[i] = z[rows.max()]
-        else:
-            profile[i]=np.nan
     return profile
 
 def cured_mask(dose, D_c):

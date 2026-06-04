@@ -23,7 +23,7 @@ class Style:
             self.text = "#000000"
             self.grid_color = "#cccccc"
             
-    def apply(self, fig):
+    def apply(self, fig, axes=None):
         mpl.rcParams.update({
             "font.family": "DejaVu Sans",
             "font.size": self.font_size,
@@ -34,6 +34,8 @@ class Style:
             "text.color": self.text,
             "axes.labelcolor": self.text,
             "axes.titlecolor": self.text,
+            
+            "image.cmap": self.cmap,
 
             "xtick.color": self.text,
             "ytick.color": self.text,
@@ -41,6 +43,12 @@ class Style:
             "grid.color": self.grid_color,
             "grid.alpha": 0.5,
         })
+        
+        fig.patch.set_facecolor(self.bg)
+
+        if axes is not None:
+            for ax in np.atleast_1d(axes):
+                ax.set_facecolor(self.axes_bg)
         
         if self.watermark is not None:
             fig.text(
@@ -53,5 +61,5 @@ class Style:
                 color="#6aa9ff",
                 alpha=0.7
             )
-        
+
         fig.tight_layout()
