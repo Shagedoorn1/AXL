@@ -18,7 +18,7 @@ class Style:
             self.grid_color = "#2f3440"
             
         else:
-            self.bg = "#fffff0"
+            self.bg = "#ffffff"
             self.axes_bg = "#ffffff"
             self.text = "#000000"
             self.grid_color = "#cccccc"

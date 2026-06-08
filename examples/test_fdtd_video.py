@@ -7,11 +7,14 @@ from plotting.style import Style
 from analysis.spot import focus_position
 
 from fdtd.solver import FDTD, get_source
-
+from fdtd.recorder import MemmapRecorder
 from constants import c0
 
 import numpy as np
 import matplotlib.pyplot as plt
+import subprocess
+import os
+import shutil
 def main():
     r_A = 20
     h0 = 44.72135955#43.697
@@ -35,35 +38,33 @@ def main():
     
     fdtd = FDTD(x=x, z=z, wavelength=1.55, n_map=n_map, boundary_type="mur", source=source)
     
-    style = Style(dark=False, font_size=9, cmap="RdBu", grid=True, watermark="H.E.A.V.Y.")
-    fig = plot_index_map(n_map=n_map, grid=fdtd.grid, style=style)
-    plt.show()
+    recorder = MemmapRecorder(
+        stride = 10,
+        filename="xu_lens.dat"
+    )
     
-    
+    fdtd.recorder = recorder
     n_steps=5000
     fdtd.run(n_steps=n_steps)
+    
     style = Style(dark=False, font_size=9, cmap="RdBu", grid=True, watermark="H.E.A.V.Y.")
     fig = plot_field(Ey=fdtd.Ey, grid=fdtd.grid, style=style)
     
     plt.show()
     
-    style = Style(dark=False, font_size=9, cmap="inferno", grid=True, watermark="H.E.A.V.Y.")
-    fig = plot_field(Ey=np.log10(fdtd.get_intensity())+1e-12, grid=fdtd.grid, style=style, title=r"$\log_{10}(I)$")
+    frames = np.memmap(
+        "xu_lens.dat",
+        dtype=np.float32,
+        mode="r",
+        shape=(recorder.n_frames, fdtd.grid.Nz, fdtd.grid.Nx)
+    )
     
-    plt.show()
+    print("frame_idx =", recorder.frame_idx)
+    print("max(frames) =", np.max(frames))
+    print("min(frames) =", np.min(frames))
+
+    recorder.render_frames(frames=frames, n_map=n_map)
+        
     
-    zvals, focus = focus_position(x, z, fdtd.get_intensity(), method="rms", x_min=-r_A/2, x_max=r_A/2)
-    print(f"focus = {focus:.2f}")
-    print(f"z_focus = {zvals:.2f}")
-    
-    print(f"src_j = {source.src_j}")
-    print(f"z[src_j] = {z[source.src_j]}")
-    print("max Ey =", np.max(np.abs(fdtd.Ey)))
-    print("max intensity =", np.max(fdtd.intensity))
-    print("n_accum =", fdtd.n_accum)
-    print(f"min E = {np.min(fdtd.Ey)}")
-    print(f"max E = {np.max(fdtd.Ey)}")
-    print(f"min I = {np.min(fdtd.get_intensity())}")
-    print(f"max I = {np.max(fdtd.get_intensity())}")
 if __name__ == "__main__":
     main()

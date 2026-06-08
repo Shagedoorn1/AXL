@@ -2,6 +2,9 @@
 __pycache__/
 <<<<<<< HEAD
 **/__pycache__/
+
+
+frames/
 =======
 >>>>>>> fa55d027cfc688c9ee79995c3a661e6be2a79efb
 *.py[codz]
@@ -11,6 +14,12 @@ __pycache__/
 *.so
 
 pushaxl.ps1
+
+**/.png
+*.png
+**/.mp4
+*.mp4
+*.dat
 
 # Distribution / packaging
 .Python

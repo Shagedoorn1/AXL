@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from analysis.waist import centroid, rms_width, fwhm, analysis_window
 from analysis.spot import waist_vs_z, focus_position, centroid_vs_z
 
 def main():

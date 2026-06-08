@@ -106,6 +106,7 @@ class FDTD:
         self.n_accum = 0
         
         self.recorder = None
+        self.n_steps = 0
 
     # ============================================================
     # core step (single source of truth)
@@ -120,10 +121,8 @@ class FDTD:
 
         self.boundary.apply(self.Ey, self.Ey_prev, self.grid.Nz, self.grid.Nx)
 
-        # intensity
-        if accumulate and step >= self.burn_in_steps:
-            accumulate_intensity(self.intensity, self.dose, self.Ey, self.grid.Nx, self.grid.Nz, self.dt)
-            self.n_accum += 1
+        accumulate_intensity(self.intensity, self.dose, self.Ey, self.grid.Nx, self.grid.Nz, self.dt)
+        self.n_accum += 1
         
         if self.recorder is not None:
             self.recorder.capture(self.Ey, step)
@@ -145,6 +144,7 @@ class FDTD:
 
     # ============================================================
     def run(self, n_steps=1000, probe_z=None, accumulate = True):
+        self.n_steps = n_steps
 
         if probe_z is not None:
             self.probe_j = np.argmin(np.abs(self.z - probe_z))

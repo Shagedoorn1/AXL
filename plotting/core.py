@@ -17,6 +17,7 @@ def AXL_figure(layout=(1, 1), figsize=(10, 6), title=None, gridspec_kw=None, sty
     if title:
         fig.suptitle(title, fontsize=13)
 
+
     # 5. layout
     gs = fig.add_gridspec(*layout, **(gridspec_kw or {}))
 

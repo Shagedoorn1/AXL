@@ -4,11 +4,14 @@ def uniform(x, z, n=1.0):
     return np.full((len(z), len(x)), n, dtype=float)
 
 def paint(n_map, mask, n):
+    if mask.shape != n_map.shape:
+        mask = np.broadcast_to(mask, n_map.shape)
     n_map[mask] = n
     return n_map
     
 def add_layer(n_map, z, z_min, z_max, n):
     mask = (z[:, None] >= z_min) & (z[:, None] <= z_max)
+    mask = np.broadcast_to(mask, n_map.shape)
     n_map[mask] = n
     return n_map
 

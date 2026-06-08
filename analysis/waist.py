@@ -11,7 +11,7 @@ def _clip_region(x, I, x_min=None, x_max=None):
         
     return x[mask], I[mask]
 
-def analysis_window(x, center, width):
+def analysis_window(center, width):
     return center - width / 2, center + width / 2
 
 def centroid(x, I, x_min=None, x_max=None):

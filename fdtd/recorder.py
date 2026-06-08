@@ -1,4 +1,9 @@
 import numpy as np
+import os
+import shutil
+import subprocess
+
+import matplotlib.pyplot as plt
 
 class BaseRecorder:
     def start(self, solver):
@@ -21,10 +26,10 @@ class MemmapRecorder(BaseRecorder):
         self.recorder = None
         
     def start(self, solver):
-        self.Nz = solver.Nz
-        self.Nx = solver.Nx
+        self.Nz = solver.grid.Nz
+        self.Nx = solver.grid.Nx
         
-        self.n_frames = 10_000
+        self.n_frames = (solver.n_steps // self.stride) + 1
         
         self.recorder = np.memmap(
             self.filename,
@@ -37,7 +42,7 @@ class MemmapRecorder(BaseRecorder):
         if step % self.stride != 0:
             return
         
-        frame = Ey * Ey
+        frame = Ey
         
         self.recorder[self.frame_idx] = frame.astype(self.dtype)
         self.frame_idx += 1
@@ -45,3 +50,48 @@ class MemmapRecorder(BaseRecorder):
     def finalize(self):
         if self.recorder is not None:
             self.recorder.flush()
+            
+    def render_frames(self, frames, n_map):
+        if os.path.exists("frames"):
+            shutil.rmtree("frames")
+
+        os.makedirs("frames")
+        
+        vmax = np.max(frames)
+        
+        for i in range(self.frame_idx):
+            
+            plt.figure(figsize=(6,4))
+
+            plt.imshow(
+                frames[i],
+                origin="lower",
+                cmap="RdBu",
+                vmin=0,
+                vmax=vmax
+            )
+            plt.contour(
+                n_map,
+                levels=[1.25],
+                colors="cyan",
+                linewidths=1
+            )
+
+            plt.savefig(
+                f"frames/frame_{i:05d}.png",
+                dpi=100,
+                bbox_inches="tight"
+            )
+            
+            plt.close()
+            
+        subprocess.run([
+            "ffmpeg",
+            "-y",
+            "-framerate", "30",
+            "-i", "frames/frame_%05d.png",
+            "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            "fdtd.mp4"
+        ])

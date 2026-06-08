@@ -6,7 +6,7 @@ def main():
     x0 = 2.5
     w0 = 5.0
     
-    x = np.linspace(-40, 40, 1000)
+    x = np.linspace(-40, 40, 100)
     
     I = np.exp(-2 * (x - x0)**2 / w0**2)
     
@@ -42,13 +42,13 @@ def main():
     x0 = 0.0
     w0 = 5
     
-    x = np.linspace(-40, 40, 10000)
+    x = np.linspace(-40, 40, 1000)
     
     I = np.exp(-2 * (x - x0)**2 / w0**2)
     
-    xc_meas = centroid(x, I, x_min=-8, x_max=8)
-    w_meas = rms_width(x, I, x_min=-8, x_max=8)
-    f_meas = fwhm(x, I, x_min=-8, x_max=8)
+    xc_meas = centroid(x, I, x_min=-7.5, x_max=7.5)
+    w_meas = rms_width(x, I, x_min=-7.5, x_max=7.5)
+    f_meas = fwhm(x, I, x_min=-7.5, x_max=7.5)
     
     xc_true = x0
     w_true  = w0
@@ -94,7 +94,6 @@ def main():
     print("fwhm     =", fwhm(x, I))
     
     xmin, xmax = analysis_window(
-        x,
         center=0.0,
         width=10.0
     )
