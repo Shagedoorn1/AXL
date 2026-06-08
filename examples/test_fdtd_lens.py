@@ -6,7 +6,8 @@ from plotting.style import Style
 
 from analysis.spot import focus_position
 
-from fdtd.solver import FDTD, get_source
+from fdtd.solver import FDTD
+from fdtd.sources import get_source
 
 from constants import c0
 
@@ -22,7 +23,7 @@ def main():
     z = np.arange(-60, 10 + dz, dz)
     h = lens_xu_single(x=x, n_lens=1.53, n_out=1.0, r_A=r_A, rA_over_a=1, h0=h0)
     
-    n_map = paint_profile(uniform(x=x, z=z, n=1.0), z=z, bottom=0, profile=h, n=1.5)
+    n_map = paint_profile(uniform(x=x, z=z, n=1.0), z=z, bottom=0, profile=h, n=1.53)
 
     source = get_source(
         name="continuous_wave",
@@ -42,13 +43,13 @@ def main():
     
     n_steps=5000
     fdtd.run(n_steps=n_steps)
-    style = Style(dark=False, font_size=9, cmap="RdBu", grid=True, watermark="H.E.A.V.Y.")
-    fig = plot_field(Ey=fdtd.Ey, grid=fdtd.grid, style=style)
+    style = Style(dark=True, font_size=9, cmap="RdBu", grid=True, watermark="H.E.A.V.Y.")
+    fig = plot_field(Ey=fdtd.Ey, grid=fdtd.grid, style=style, n_map=n_map)
     
     plt.show()
     
     style = Style(dark=False, font_size=9, cmap="inferno", grid=True, watermark="H.E.A.V.Y.")
-    fig = plot_field(Ey=np.log10(fdtd.get_intensity())+1e-12, grid=fdtd.grid, style=style, title=r"$\log_{10}(I)$")
+    fig = plot_field(Ey=np.log10(fdtd.get_intensity())+1e-12, grid=fdtd.grid, style=style, title=r"$\log_{10}(I)$", n_map=n_map)
     
     plt.show()
     

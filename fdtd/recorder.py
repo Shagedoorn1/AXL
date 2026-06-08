@@ -51,12 +51,11 @@ class MemmapRecorder(BaseRecorder):
         if self.recorder is not None:
             self.recorder.flush()
             
-    def render_frames(self, frames, n_map):
+    def render_frames(self, frames, n_map, fps=30):
         if os.path.exists("frames"):
             shutil.rmtree("frames")
 
         os.makedirs("frames")
-        
         vmax = np.max(frames)
         
         for i in range(self.frame_idx):
@@ -79,7 +78,7 @@ class MemmapRecorder(BaseRecorder):
 
             plt.savefig(
                 f"frames/frame_{i:05d}.png",
-                dpi=100,
+                dpi=300,
                 bbox_inches="tight"
             )
             
@@ -88,10 +87,10 @@ class MemmapRecorder(BaseRecorder):
         subprocess.run([
             "ffmpeg",
             "-y",
-            "-framerate", "30",
+            "-framerate", str(fps),
             "-i", "frames/frame_%05d.png",
             "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
-            "fdtd.mp4"
+            "videos/fdtd.mp4"
         ])

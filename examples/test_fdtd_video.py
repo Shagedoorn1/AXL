@@ -6,15 +6,14 @@ from plotting.style import Style
 
 from analysis.spot import focus_position
 
-from fdtd.solver import FDTD, get_source
+from fdtd.solver import FDTD
+from fdtd.sources import get_source
 from fdtd.recorder import MemmapRecorder
 from constants import c0
 
 import numpy as np
 import matplotlib.pyplot as plt
-import subprocess
-import os
-import shutil
+
 def main():
     r_A = 20
     h0 = 44.72135955#43.697
@@ -63,7 +62,7 @@ def main():
     print("max(frames) =", np.max(frames))
     print("min(frames) =", np.min(frames))
 
-    recorder.render_frames(frames=frames, n_map=n_map)
+    recorder.render_frames(frames=frames, n_map=n_map, fps=30)
         
     
 if __name__ == "__main__":

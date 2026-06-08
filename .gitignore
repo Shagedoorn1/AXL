@@ -17,8 +17,6 @@ pushaxl.ps1
 
 **/.png
 *.png
-**/.mp4
-*.mp4
 *.dat
 
 # Distribution / packaging

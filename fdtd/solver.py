@@ -1,6 +1,5 @@
-from .kernels import update_H, update_E, inject_source, accumulate_intensity
+from .kernels import update_H, update_E, accumulate_intensity
 from .boundaries import get_boundary
-from .sources import get_source
 from plotting import Grid
 from constants import c0, eps0, mu0
 import numpy as np

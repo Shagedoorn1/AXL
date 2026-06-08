@@ -4,7 +4,7 @@ def plot_field(Ey, grid, style=None, title=None, n_map=None):
     fig, axes, _ = AXL_figure(style=style, title=title if title is not None else "Field")
     ax = axes[0, 0]
     
-    im = ax.imshow(Ey, origin="lower", extent=grid.extent, aspect="auto")
+    im = ax.imshow(Ey, origin="lower", extent=grid.extent, aspect="equal")
     fig.colorbar(im, ax=ax)
 
     ax.set_xlabel(r"$x \ \left[\mathrm{\mu m}\right]$")
@@ -13,7 +13,7 @@ def plot_field(Ey, grid, style=None, title=None, n_map=None):
         ax.contour(
             n_map,
             levels=[1.25],
-            colors="cyan"
+            extent=grid.extent
         )
     return fig, ax
 
@@ -21,7 +21,7 @@ def plot_field(Ey, grid, style=None, title=None, n_map=None):
 def plot_index_map(n_map, grid, style=None, title=None):
     fig, axes, _ = AXL_figure(style=style, title=title if title is not None else "Refractive index map")
     ax = axes[0, 0]
-    im = ax.imshow(n_map, origin="lower", cmap="coolwarm", extent=grid.extent, aspect="auto")
+    im = ax.imshow(n_map, origin="lower", cmap="coolwarm", extent=grid.extent, aspect="equal")
     fig.colorbar(im, ax=ax)
     
     ax.set_xlabel(r"$x \ \left[\mathrm{\mu m}\right]$")
@@ -32,7 +32,7 @@ def plot_index_map(n_map, grid, style=None, title=None):
 def plot_dose(dose, grid, style=None, title=None):
     fig, axes, _ = AXL_figure(style=style, title=title if title is not None else r"Dose ($\int\left|E\right|^2 dt$)")
     ax = axes[0, 0]
-    im = ax.imshow(dose, origin="lower", cmap="magma", extent=grid.extent, aspect="auto")
+    im = ax.imshow(dose, origin="lower", cmap="magma", extent=grid.extent, aspect="equal")
     fig.colorbar(im, ax=ax)
 
     ax.set_title()
